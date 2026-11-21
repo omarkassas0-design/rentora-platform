@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title">
+<title id="title">Rentora car image placeholder</title>
+<rect width="1200" height="800" fill="#eef1f4"/>
+<circle cx="600" cy="310" r="145" fill="#dce2e8"/>
+<path d="M270 525h90l75-145c19-36 51-56 92-56h285c41 0 73 20 94 56l78 145h56c37 0 67 30 67 67v37H203v-37c0-37 30-67 67-67Z" fill="#aeb9c5"/>
+<path d="M475 480h340" stroke="#eef1f4" stroke-width="18" stroke-linecap="round"/>
+<circle cx="390" cy="625" r="57" fill="#657383" stroke="#eef1f4" stroke-width="18"/>
+<circle cx="850" cy="625" r="57" fill="#657383" stroke="#eef1f4" stroke-width="18"/>
+<text x="600" y="745" text-anchor="middle" fill="#657383" font-family="Arial, sans-serif" font-size="30">RENTORA</text>
+</svg>

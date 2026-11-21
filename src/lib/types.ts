@@ -1,0 +1,3 @@
+export type Car = {id:string;office_id:string;title:string;brand:string;model:string;year:number;city:string;daily_price:number;currency:string;transmission:string;fuel:string;seats:number;image_url:string|null;description:string|null;is_published:boolean;status:string;office_name?:string;office_verified?:boolean;original_daily_price?:number;offer_label?:string};
+export type Office = {id:string;name:string;city:string;phone:string|null;verified:boolean};
+export type Booking = {id:string;car_id:string;office_id:string;customer_id:string;start_at:string;end_at:string;total_price:number;currency:string;status:string;created_at:string;cars?:Car};

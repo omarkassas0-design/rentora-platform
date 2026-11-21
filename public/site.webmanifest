@@ -1,0 +1,12 @@
+{
+  "name": "Rentora",
+  "short_name": "Rentora",
+  "description": "Car rental marketplace",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#101923",
+  "icons": [{"src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}]
+}
