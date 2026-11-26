@@ -629,7 +629,7 @@ const UI_AR: Record<string, string> = {
   'New 5-star review': 'تقييم جديد بخمس نجوم',
   'Vehicle added': 'تمت إضافة سيارة',
   'Platform control': 'إدارة المنصة',
-  'office owner': 'مالك المكتب',,
+  'office owner': 'مالك المكتب',
   'Business address *': 'عنوان النشاط *',
   'To': 'إلى',
   'Switch language': 'تغيير اللغة'
