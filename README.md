@@ -1,0 +1,121 @@
+# Motara
+
+Motara is a React/Vite marketplace with separate customer, rental-office, and platform-admin route shells. The repository includes a Supabase PostgreSQL schema with tenant RLS, a Cloudflare Worker API, a development-only local preview, pricing logic, and deployment wiring.
+
+## What is implemented
+
+- Responsive customer routes for search, car details, offices, cities, offers, account, and policy pages.
+- Search by city and dates, category/transmission/price filters, saved cars, validated quotes, and booking requests.
+- Supabase email/password signup, login, email verification flow, and password reset when public Supabase settings are present.
+- Separate customer, office, and platform-admin route shells. Admin sign-in is `/admin/login`, the Super Admin dashboard is `/admin/overview`, and office sign-in is `/office/login`. Office fleet management supports create/edit/archive, pricing, publication status, and vehicle photo uploads. Admin office management supports creation, profile edits, approval, rejection, activation, and suspension.
+- Booking operations record approval, pickup/return odometer and fuel, late minutes, damage notes, inspection photos, and database history. Customers can save cars, edit their profile, and manage booking-linked payments and balances.
+- The manual-only payment ledger supports cash and bank transfers, partial payments, server-calculated outstanding balances, office payment instructions, customer receipt uploads, permission-checked verification, manually recorded refunds, security-deposit collection/deductions/refunds, payment history, and printable invoices and receipts. Office financial reports and platform-wide finance reports are calculated in PostgreSQL. Payout requests and manual settlements are audited.
+- Supabase migrations for normalized marketplace records, database-side pricing, coupon limits, booking status history, audit logging, and an exclusion constraint that prevents overlapping reservations for the same vehicle.
+- Row Level Security on the public schema; helper functions scope office access and staff permissions. File buckets are configured for public vehicle images and private documents, inspection photos, and payment proofs.
+- Worker routes for public vehicle search and quotes, authenticated booking creation and retrieval, booking decisions/pickup/return/cancellation, manual payments, secure proof registration, payment verification, manual refunds, deposit settlements, invoice issuance, financial reports, and payout settlements.
+- Payments are manual only: cash and bank transfer, partial balances, customer proof uploads, staff verification, refunds, deposits, printable invoices and receipts, and auditable office payout settlements. No online payment gateway is included.
+- Office subscriptions with plan CRUD, manual assignments, owner change requests and cancellations, and platform approvals. No subscription payment gateway is used.
+- Supabase-backed CMS management for bilingual public pages and FAQs, homepage banners, and featured content.
+- Customer support tickets and booking disputes with threaded replies, internal staff notes, tenant-scoped office queues, and moderated resolutions.
+- Office and platform staff invitations with email-bound, expiring activation links, role assignment, staff permissions, suspension, revocation, and audited database changes.
+- Live rental calendars with day, week, and month views. Platform settings support search, validation, editing, and removal with database auditing.
+
+The local development preview can run without Supabase and saves its clearly labeled sample records in the current browser. Production builds stop at a setup screen until Supabase settings are present, so seeded cars, offices, or bookings are never shown as live marketplace records. Customer, office, and platform workspaces use Supabase under Row Level Security. The seed script is for isolated development projects only.
+
+## Requirements
+
+- Node.js 22 or newer and npm.
+- A Supabase project for persistent accounts and data.
+- Cloudflare account and domain for deployment.
+- A GitHub repository for the optional deployment workflow.
+
+No Docker is required for the local frontend preview. A production marketplace requires Supabase and the Worker API to be configured. The repository does not connect to a hosted service or deploy itself.
+
+## Run the demo
+
+```sh
+npm install
+npm run dev
+```
+
+Open the Vite URL printed in the terminal. The marketplace footer links to platform administration at `/admin/login`; office staff use `/office/login`. Demo booking and status changes stay in browser storage.
+
+## Connect Supabase
+
+1. The production browser settings are supplied by `.env.production` (project URL, publishable key, and same-origin `/api`). The publishable key is designed to be public; never use a Supabase secret or service-role key here.
+2. Authenticate the Supabase CLI and link this directory to the project.
+3. Apply every migration, including the two dual-currency migrations, with `supabase db push`. Configure Supabase Auth email/redirect settings for `https://motara-platform.omarkassas0.workers.dev`.
+4. `wrangler.toml` already defines the exact Worker name, `APP_ORIGIN`, `SUPABASE_URL`, and public `SUPABASE_ANON_KEY` for this project. These are public/client credentials; never add a service-role key.
+5. Build and deploy:
+
+   ```sh
+   npm run build
+   npm run deploy
+   ```
+
+The Worker forwards the caller’s Supabase JWT and uses the publishable key; it does not bypass RLS. The configured project URL is `https://udautllitqseyqyrpqui.supabase.co`. The publishable key is intentionally public. Never add `SUPABASE_SERVICE_ROLE_KEY` to Worker configuration or browser builds.
+
+## Development seed
+
+The schema seeds city/category/plan/settings reference rows. The optional `scripts/seed.ts` script creates test auth users and sample offices, vehicles, bookings, manual payments, reviews, coupons, and a promotion. It refuses to target a non-local database unless explicitly overridden.
+
+Create a private `.env.local` for a local Supabase project with `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`, then run:
+
+```sh
+ALLOW_DEMO_SEED=true npm run seed:demo
+```
+
+The service-role key is used only by this local script. Do not commit it or run demo seeding against production. Demo password: `MotaraDemo!2026`.
+
+| Role | Email |
+|---|---|
+| Super Admin | `admin@motara.local` |
+| Admin Staff | `adminstaff@motara.local` |
+| Office Owner (Damascus) | `owner.levant-mobility@motara.local` |
+| Office Manager (Damascus) | `manager@motara.local` |
+| Office Staff (Damascus) | `staff@motara.local` |
+| Customer | `customer1@motara.local` |
+
+Other office owners and customers are also created by the seed script. Demo users should exist only in an isolated development project.
+
+## Currency and payments
+
+Rental offices can enter USD and SYP vehicle prices independently. SYP prices are never calculated from an exchange rate. The public vehicle catalog can display the selected currency when the office has entered a price for that currency; a missing SYP price is shown as unavailable. Booking quotes and the financial ledger remain in the booking currency (currently USD) and are not silently converted. Payments are exclusively manual cash or bank transfer. The Worker has no online payment endpoint, adapter, or payment credential.
+
+## Tests and checks
+
+```sh
+npm run typecheck
+npm run lint
+npm test
+npm run build
+```
+
+Vitest covers rental quote arithmetic, booking intervals, calendar date ranges, CMS link safety, and platform setting validation. Database migrations and RLS policies must be applied and exercised against an isolated Supabase project; this source package contains no hosted project credentials.
+
+## Deploy from GitHub
+
+The workflow in `.github/workflows/deploy.yml` runs TypeScript, lint, unit tests, and the production build on pull requests and pushes to `main`. On `main`, it deploys with Wrangler when `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are configured as GitHub repository secrets. Database migrations must be applied to Supabase separately; they are not automatically executed by a frontend deployment.
+
+## Project layout
+
+```text
+src/                     Marketplace and portal UI, domain helpers, quote tests
+worker/src/index.ts      Cloudflare Worker API and manual payment adapter
+supabase/migrations/     PostgreSQL tables, RPCs, booking exclusion, RLS, Storage, manual finance ledger
+supabase/seed.sql        Public Syrian city reference data
+scripts/seed.ts          Isolated development account and marketplace seeding
+wrangler.toml            Worker + static SPA configuration
+```
+
+## Marketplace image advertisements
+
+Rental offices can submit a banner from **Office portal → Advertise on Motara**. Submissions are stored as pending until a platform administrator reviews them under **Admin portal → Advertisements**. Approved campaigns rotate automatically in the homepage banner carousel (5-second interval); visitors can use the arrows/dots and open the optional destination link.
+
+Before using this feature with Supabase, apply `supabase/migrations/202611270005_advertisement_campaigns.sql`. It creates the campaign table, row-level security policies, and the public `advertisement-images` storage bucket. Images are limited to JPG/PNG/WebP and 8 MB. Office users need the existing `promotions.manage` permission. Approval is performed by a platform administrator.
+
+## Motara brand and bilingual advertisements
+
+The public brand is **Motara** throughout the application, receipts, deployment metadata, and documentation. Existing browser language preferences saved under the former `rentora.language` key are read as a one-time compatibility fallback; new preferences use `motara.language`.
+
+Rental offices submit each advertisement with both an English and Arabic headline. Apply the migration `supabase/migrations/202611270008_motara_bilingual_ads.sql` after the existing advertisement campaign migration. The homepage carousel displays the headline matching the selected site language.
