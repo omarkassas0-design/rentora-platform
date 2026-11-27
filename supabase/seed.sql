@@ -1,0 +1,3 @@
+-- The 14 Syrian governorates are installed by migration
+-- 202611270004_syrian_14_governorates.sql.
+-- No customer or rental-office workflow may create/delete governorates.
